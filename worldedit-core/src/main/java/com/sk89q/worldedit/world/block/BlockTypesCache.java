@@ -214,6 +214,9 @@ public class BlockTypesCache {
             Platform platform = WorldEdit.getInstance().getPlatformManager().queryCapability(Capability.GAME_HOOKS);
             Registries registries = platform.getRegistries();
             BlockRegistry blockReg = registries.getBlockRegistry();
+            System.out.println("obtained platform: " + platform.getPlatformName() + " @ " + platform.getPlatformVersion());
+            System.out.println("registry type: " + blockReg.getClass().getName());
+            System.out.println("block registry size: " + blockReg.values().size());
             Collection<String> blocks = blockReg.values();
             Map<String, String> blockMap = blocks.stream().collect(Collectors.toMap(item -> item.charAt(item.length() - 1) == ']'
                     ? item.substring(0, item.indexOf('['))
@@ -223,14 +226,18 @@ public class BlockTypesCache {
             BIT_OFFSET = MathMan.log2nlz(size);
             BIT_MASK = ((1 << BIT_OFFSET) - 1);
             values = new BlockType[size];
+            System.out.println("values arr: " + values.length);
 
             // Register reserved IDs. Ensure air/reserved are 0/1/2/3
             {
                 for (Field field : ReservedIDs.class.getDeclaredFields()) {
+                    System.out.println("reading field: " + field.getName());
                     if (field.getType() == int.class) {
                         int internalId = field.getInt(null);
+                        System.out.println("got internal ID: " + internalId);
                         String id = "minecraft:" + field.getName().toLowerCase(Locale.ROOT);
                         String defaultState = blockMap.remove(id);
+                        System.out.println("obtained default state: " + defaultState);
                         if (defaultState == null) {
                             defaultState = id;
                         }

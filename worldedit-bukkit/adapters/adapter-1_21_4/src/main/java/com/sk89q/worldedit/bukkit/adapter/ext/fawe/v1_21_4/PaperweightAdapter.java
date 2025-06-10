@@ -184,6 +184,7 @@ public final class PaperweightAdapter implements BukkitImplAdapter<net.minecraft
 
     public PaperweightAdapter() throws NoSuchFieldException, NoSuchMethodException {
         // A simple test
+        System.out.println("init paperweightadapter");
         CraftServer.class.cast(Bukkit.getServer());
 
         int dataVersion = SharedConstants.getCurrentVersion().getDataVersion().getVersion();
@@ -225,6 +226,10 @@ public final class PaperweightAdapter implements BukkitImplAdapter<net.minecraft
             SpigotConfig.config.set("world-settings.worldeditregentempworld.verbose", false);
         } catch (ClassNotFoundException ignored) {
         }
+    }
+
+    public boolean isFolia() {
+        return true;
     }
 
     @Override

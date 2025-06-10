@@ -134,7 +134,7 @@ public class Fawe {
                 WEManager.weManager().addManagers(Fawe.this.implementation.getMaskManagers());
             } catch (Throwable ignored) {
             }
-        }, 0);
+        }, 1);
         TaskManager.taskManager().repeatAsync(MemUtil::checkAndSetApproachingLimit, 1);
 
         TaskManager.taskManager().repeat(timer, 1);
@@ -146,6 +146,12 @@ public class Fawe {
                 new LinkedBlockingQueue<>(),
                 new UUIDKeyQueuedThreadFactory()
         ));
+
+        TaskManager.taskManager().repeat(timer, 1);
+    }
+
+    public static boolean isTickThread() {
+        return instance == null || instance.implementation.isTickThread();
     }
 
     /**

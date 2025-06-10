@@ -1,10 +1,14 @@
 package com.fastasyncworldedit.bukkit.util;
 
 import com.fastasyncworldedit.core.util.TaskManager;
+import com.sk89q.worldedit.entity.Player;
+import com.sk89q.worldedit.util.Location;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.Plugin;
+import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
+import java.util.function.Supplier;
 
 public class BukkitTaskManager extends TaskManager {
 
@@ -12,6 +16,28 @@ public class BukkitTaskManager extends TaskManager {
 
     public BukkitTaskManager(final Plugin plugin) {
         this.plugin = plugin;
+    }
+
+    @Override
+    public void task(@NotNull final Runnable runnable, @NotNull final Location context) {
+
+    }
+
+    @Override
+    public void later(@NotNull final Runnable runnable, final Location location, final int delay) {
+
+    }
+
+    // TODO
+
+    @Override
+    public <T> T syncAt(final Supplier<T> supplier, final Location context) {
+        return sync(supplier);
+    }
+
+    @Override
+    public <T> T syncWith(final Supplier<T> supplier, final Player context) {
+        return sync(supplier);
     }
 
     @Override

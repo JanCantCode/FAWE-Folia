@@ -141,6 +141,8 @@ public class WorldEditPlugin extends JavaPlugin {
         final String type = attributes.getValue("FAWE-Plugin-Jar-Type");
         Objects.requireNonNull(type, "Could not determine plugin jar type");
         if (PaperLib.isPaper()) {
+            System.out.println("paperlib decided we are paper");
+            System.out.println("are we mojang mapped? " + Refraction.isMojangMapped());
             if (PaperLib.getMinecraftVersion() < 20 || (PaperLib.getMinecraftVersion() == 20 && PaperLib.getMinecraftPatchVersion() < 5)) {
                 if (type.equals("mojang") && !Refraction.isMojangMapped()) {
                     throw new IllegalStateException(
@@ -234,7 +236,15 @@ public class WorldEditPlugin extends JavaPlugin {
      */
     @Override
     public void onEnable() {
-
+       try {
+           System.out.println("trying to instantiate itemstack class!");
+           Class<?> clazz = Class.forName("org.bukkit.craftbukkit.inventory.CraftItemStack");
+           System.out.println("itemstack: " + clazz.getName());
+           System.out.println("itemstack: " + clazz.getPackage().getName());
+       } catch (Exception e) {
+           System.out.println("failed loading itemstack class");
+           e.printStackTrace();
+       }
         // Catch bad things being done by naughty plugins that include
         // WorldEdit's classes
         ClassSourceValidator verifier = new ClassSourceValidator(this);
@@ -406,10 +416,12 @@ public class WorldEditPlugin extends JavaPlugin {
     // FAWE end
 
     private void loadAdapter() {
+        System.out.println("looking for bukkit adapters for some reason!");
         WorldEdit worldEdit = WorldEdit.getInstance();
 
         // Attempt to load a Bukkit adapter
         BukkitImplLoader adapterLoader = new BukkitImplLoader();
+
         try {
             adapterLoader.addFromPath(getClass().getClassLoader());
         } catch (IOException e) {
@@ -422,10 +434,14 @@ public class WorldEditPlugin extends JavaPlugin {
             LOGGER.warn("Failed to search " + getFile() + " for Bukkit adapters", e);
         }
         try {
+            System.out.println("loading adapter");
             BukkitImplAdapter bukkitAdapter = adapterLoader.loadAdapter();
+
             LOGGER.info("Using " + bukkitAdapter.getClass().getCanonicalName() + " as the Bukkit adapter");
             this.adapter.newValue(bukkitAdapter);
+            System.out.println("updated adapter value with " + bukkitAdapter.getClass().getName());
         } catch (AdapterLoadException e) {
+            System.out.println("exception during load!");
             Platform platform = worldEdit.getPlatformManager().queryCapability(Capability.WORLD_EDITING);
             if (platform instanceof BukkitServerInterface) {
                 LOGGER.warn(e.getMessage());
@@ -456,7 +472,7 @@ public class WorldEditPlugin extends JavaPlugin {
         if (config != null) {
             config.unload();
         }
-        this.getServer().getScheduler().cancelTasks(this);
+        //this.getServer().getScheduler().cancelTasks(this);
     }
 
     /**

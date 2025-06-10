@@ -86,6 +86,7 @@ import org.bukkit.craftbukkit.CraftWorld;
 import org.bukkit.craftbukkit.block.data.CraftBlockData;
 import org.bukkit.craftbukkit.entity.CraftEntity;
 import org.bukkit.craftbukkit.entity.CraftPlayer;
+//import org.bukkit.craftbukkit.inventory.CraftItemStack;
 import org.bukkit.craftbukkit.inventory.CraftItemStack;
 import org.bukkit.craftbukkit.util.CraftNamespacedKey;
 import org.bukkit.entity.Player;
@@ -93,6 +94,8 @@ import org.enginehub.linbus.tree.LinCompoundTag;
 import org.enginehub.linbus.tree.LinStringTag;
 import org.enginehub.linbus.tree.LinTag;
 
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
 import java.lang.ref.WeakReference;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -130,9 +133,47 @@ public final class PaperweightFaweAdapter extends FaweAdapter<net.minecraft.nbt.
     }
 
     private final PaperweightMapChunkUtil mapUtil = new PaperweightMapChunkUtil();
+    // Folia - START
+    private MethodHandle currentWorldData;
+
+    private Class<?> regionizedWorldData;
+
+    private Field captureTreeGeneration;
+    private Field captureBlockStates;
+    private Field capturedBlockStates;
 
     public PaperweightFaweAdapter() throws NoSuchFieldException, NoSuchMethodException {
         super(new PaperweightAdapter());
+        System.out.println("hello from paper FAWE adapter!");
+        try {
+            Method getCurrentWorldData = ServerLevel.class.getSuperclass().getDeclaredMethod(
+                    "getCurrentWorldData"
+            );
+            getCurrentWorldData.setAccessible(true);
+
+            currentWorldData = MethodHandles.lookup().unreflect(getCurrentWorldData);
+        } catch (Exception ec) {
+            System.out.println("exception whilst loading getCurrentWorldData");
+            ec.printStackTrace();
+        }
+
+        try {
+            regionizedWorldData = Class.forName("io.papermc.paper.threadedregions.RegionizedWorldData");
+        } catch (ClassNotFoundException e) {
+        }
+        if (regionizedWorldData != null) {
+            final Field captureTreeGeneration = regionizedWorldData.getDeclaredField("captureTreeGeneration");
+            captureTreeGeneration.setAccessible(true);
+            this.captureTreeGeneration = captureTreeGeneration;
+
+            final Field captureBlockStates = regionizedWorldData.getDeclaredField("captureBlockStates");
+            captureBlockStates.setAccessible(true);
+            this.captureBlockStates = captureBlockStates;
+
+            final Field capturedBlockStates = regionizedWorldData.getDeclaredField("capturedBlockStates");
+            capturedBlockStates.setAccessible(true);
+            this.capturedBlockStates = capturedBlockStates;
+        }
     }
 
     public Function<BlockEntity, FaweCompoundTag> blockEntityToCompoundTag() {
@@ -519,25 +560,26 @@ public final class PaperweightFaweAdapter extends FaweAdapter<net.minecraft.nbt.
                     .getOrThrow();
             stack.applyComponents(patch);
         }
+
         return CraftItemStack.asCraftMirror(stack);
     }
 
     @Override
     protected void preCaptureStates(final ServerLevel serverLevel) {
-        serverLevel.captureTreeGeneration = true;
-        serverLevel.captureBlockStates = true;
+        serverLevel.getCurrentWorldData().captureTreeGeneration = true;
+        serverLevel.getCurrentWorldData().captureBlockStates = true;
     }
 
     @Override
     protected List<org.bukkit.block.BlockState> getCapturedBlockStatesCopy(final ServerLevel serverLevel) {
-        return new ArrayList<>(serverLevel.capturedBlockStates.values());
+        return new ArrayList<>(serverLevel.getCurrentWorldData().capturedBlockStates.values());
     }
 
     @Override
     protected void postCaptureBlockStates(final ServerLevel serverLevel) {
-        serverLevel.captureBlockStates = false;
-        serverLevel.captureTreeGeneration = false;
-        serverLevel.capturedBlockStates.clear();
+        serverLevel.getCurrentWorldData().captureBlockStates = false;
+        serverLevel.getCurrentWorldData().captureTreeGeneration = false;
+        serverLevel.getCurrentWorldData().capturedBlockStates.clear();
     }
 
     @Override

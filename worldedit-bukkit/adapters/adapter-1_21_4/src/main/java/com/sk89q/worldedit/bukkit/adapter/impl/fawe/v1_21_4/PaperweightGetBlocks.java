@@ -14,6 +14,7 @@ import com.fastasyncworldedit.core.queue.IChunkSet;
 import com.fastasyncworldedit.core.util.MathMan;
 import com.fastasyncworldedit.core.util.NbtUtils;
 import com.fastasyncworldedit.core.util.collection.AdaptedMap;
+import com.sk89q.jnbt.LazyCompoundTag;
 import com.sk89q.worldedit.bukkit.BukkitAdapter;
 import com.sk89q.worldedit.bukkit.BukkitEntity;
 import com.sk89q.worldedit.bukkit.WorldEditPlugin;
@@ -88,6 +89,7 @@ import java.util.concurrent.Semaphore;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 import static net.minecraft.core.registries.Registries.BIOME;
 
@@ -196,14 +198,16 @@ public class PaperweightGetBlocks extends AbstractBukkitGetBlocks<ServerLevel, L
 
     @Override
     public FaweCompoundTag tile(final int x, final int y, final int z) {
-        BlockEntity blockEntity = getChunk().getBlockEntity(new BlockPos((x & 15) + (
-                chunkX << 4), y, (z & 15) + (
-                chunkZ << 4)));
-        if (blockEntity == null) {
-            return null;
-        }
-        return NMS_TO_TILE.apply(blockEntity);
+        Supplier<BlockEntity> entity = () -> {
+            var pos = new BlockPos(
+                    (x & 15) + (
+                            chunkX << 4), y, (z & 15) + (
+                    chunkZ << 4)
+            );
 
+            return getChunk().getBlockEntity(pos);
+        };
+        return NMS_TO_TILE.apply(entity.get());
     }
 
     @Override

@@ -57,6 +57,7 @@ public class BukkitBlockRegistry extends BundledBlockRegistry {
                 return result;
             }
         }
+
         Material mat = BukkitAdapter.adapt(blockType);
         if (mat == null) {
             return new PassthroughBlockMaterial(null);

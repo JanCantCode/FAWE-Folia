@@ -287,7 +287,7 @@ public final class PaperweightPlatformAdapter extends NMSAdapter {
             if (nmsChunk != null) {
                 return nmsChunk;
             }
-            if (Fawe.isMainThread()) {
+            if (Fawe.isTickThread()) {
                 return serverLevel.getChunk(chunkX, chunkZ);
             }
             return null;
@@ -303,7 +303,7 @@ public final class PaperweightPlatformAdapter extends NMSAdapter {
                 return nmsChunk;
             }
             // Avoid "async" methods from the main thread.
-            if (Fawe.isMainThread()) {
+            if (Fawe.isTickThread()) {
                 return serverLevel.getChunk(chunkX, chunkZ);
             }
             return null;
@@ -312,7 +312,11 @@ public final class PaperweightPlatformAdapter extends NMSAdapter {
 
     private static void addTicket(ServerLevel serverLevel, int chunkX, int chunkZ) {
         // Ensure chunk is definitely loaded before applying a ticket
-        io.papermc.paper.util.MCUtil.MAIN_EXECUTOR.execute(() -> serverLevel
+        //io.papermc.paper.util.MCUtil.MAIN_EXECUTOR.execute(() -> serverLevel
+        //.getChunkSource()
+        //        .addRegionTicket(ChunkHolderManager.UNLOAD_COOLDOWN, new ChunkPos(chunkX, chunkZ), 0, Unit.INSTANCE));
+
+        TaskManager.taskManager().taskNowMain(() -> serverLevel
                 .getChunkSource()
                 .addRegionTicket(ChunkHolderManager.UNLOAD_COOLDOWN, new ChunkPos(chunkX, chunkZ), 0, Unit.INSTANCE));
     }
@@ -347,7 +351,8 @@ public final class PaperweightPlatformAdapter extends NMSAdapter {
         if (lockHolder.chunkLock == null) {
             return;
         }
-        MinecraftServer.getServer().execute(() -> {
+        TaskManager.taskManager().async(() -> { // schedule task on async taskmanager rather than mc scheduler and hope we are
+            // on a tickthread
             try {
                 ChunkPos pos = levelChunk.getPos();
                 ClientboundLevelChunkWithLightPacket packet;

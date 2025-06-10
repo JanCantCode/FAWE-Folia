@@ -103,7 +103,8 @@ dependencies {
         exclude("com.sk89q.worldedit.worldedit-libs", "bukkit")
         exclude("com.sk89q.worldedit.worldedit-libs", "core")
     }
-    compileOnly(libs.mapmanager) { isTransitive = false }
+    //compileOnly(libs.mapmanager) { isTransitive = false }
+    // builds for mapmanager aren't published apparently
     compileOnly(libs.griefprevention) { isTransitive = false }
     compileOnly(libs.griefdefender) { isTransitive = false }
     compileOnly(libs.residence) { isTransitive = false }

@@ -11,6 +11,7 @@ import com.fastasyncworldedit.bukkit.regions.ResidenceFeature;
 import com.fastasyncworldedit.bukkit.regions.TownyFeature;
 import com.fastasyncworldedit.bukkit.regions.WorldGuardFeature;
 import com.fastasyncworldedit.bukkit.util.BukkitTaskManager;
+import com.fastasyncworldedit.bukkit.util.FoliaTaskManager;
 import com.fastasyncworldedit.bukkit.util.ItemUtil;
 import com.fastasyncworldedit.bukkit.util.image.BukkitImageViewer;
 import com.fastasyncworldedit.core.FAWEPlatformAdapterImpl;
@@ -21,6 +22,7 @@ import com.fastasyncworldedit.core.queue.implementation.QueueHandler;
 import com.fastasyncworldedit.core.queue.implementation.preloader.AsyncPreloader;
 import com.fastasyncworldedit.core.queue.implementation.preloader.Preloader;
 import com.fastasyncworldedit.core.regions.FaweMaskManager;
+import com.fastasyncworldedit.core.util.FoliaSupport;
 import com.fastasyncworldedit.core.util.TaskManager;
 import com.fastasyncworldedit.core.util.WEManager;
 import com.fastasyncworldedit.core.util.image.ImageViewer;
@@ -62,9 +64,13 @@ public class FaweBukkit implements IFawe, Listener {
     private Preloader preloader;
     private volatile boolean keepUnloaded;
 
+    private static final Thread startingThread = Thread.currentThread();
+
     public FaweBukkit(Plugin plugin) {
         this.plugin = plugin;
+
         try {
+            System.out.println("attempting injection");
             Fawe.set(this);
             Fawe.setupInjector();
             try {
@@ -72,7 +78,7 @@ public class FaweBukkit implements IFawe, Listener {
             } catch (Throwable e) {
                 LOGGER.error("Brush Listener Failed", e);
             }
-            if (PaperLib.isPaper() && Settings.settings().EXPERIMENTAL.DYNAMIC_CHUNK_RENDERING > 1) {
+            if (PaperLib.isPaper() && Settings.settings().EXPERIMENTAL.DYNAMIC_CHUNK_RENDERING > 1 && FoliaSupport.isFolia()) {
                 new RenderListener(plugin);
             }
         } catch (final Throwable e) {
@@ -83,25 +89,27 @@ public class FaweBukkit implements IFawe, Listener {
         platformAdapter = new NMSAdapter();
 
         //PlotSquared support is limited to Spigot/Paper as of 02/20/2020
-        TaskManager.taskManager().later(this::setupPlotSquared, 0);
+        Bukkit.getPluginManager().registerEvents(FaweBukkit.this, FaweBukkit.this.plugin);
 
         // Registered delayed Event Listeners
-        TaskManager.taskManager().task(() -> {
+        //TaskManager.taskManager().task(() -> {
             // Fix for ProtocolSupport
-            Settings.settings().PROTOCOL_SUPPORT_FIX =
-                    Bukkit.getPluginManager().isPluginEnabled("ProtocolSupport");
+        //    Settings.settings().PROTOCOL_SUPPORT_FIX =
+         //           Bukkit.getPluginManager().isPluginEnabled("ProtocolSupport");
 
             // This class
-            Bukkit.getPluginManager().registerEvents(FaweBukkit.this, FaweBukkit.this.plugin);
+           // Bukkit.getPluginManager().registerEvents(FaweBukkit.this, FaweBukkit.this.plugin);
 
             // The tick limiter
-            new ChunkListener9();
-        });
+       //     new ChunkListener9();
+        //});
 
+        Bukkit.getPluginManager().registerEvents(this, this.plugin);
         // Warn if small-edits are enabled with extended world heights
         if (Settings.settings().HISTORY.SMALL_EDITS) {
             LOGGER.warn("Small-edits enabled (maximum y range of 0 -> 256) with 1.18+ world heights. Are you sure?");
         }
+
     }
 
     @Override
@@ -186,6 +194,7 @@ public class FaweBukkit implements IFawe, Listener {
      */
     @Override
     public TaskManager getTaskManager() {
+        if (FoliaSupport.isFolia()) return new FoliaTaskManager();
         return new BukkitTaskManager(plugin);
     }
 
@@ -315,4 +324,11 @@ public class FaweBukkit implements IFawe, Listener {
         }
     }
 
+    @Override
+    public boolean isTickThread() {
+        if (FoliaSupport.isFolia()) {
+            return FoliaSupport.isTickThread();
+        }
+        return Thread.currentThread() == startingThread;
+    }
 }
