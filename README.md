@@ -2,7 +2,8 @@
 - breaks some features (?)
 - basic block setting and getting is confirmed to work
 - is based on most of the modifications from https://github.com/IntellectualSites/FastAsyncWorldEdit/pull/2309
-- build config only includes the 1.21.4 adapter
+- build config only includes the 1.21.4 adapter (also force-loads that adapter and doesn't allow any other adapters to be loaded, this was more so for test purposes)
+- doesnt use an optional folia-only adapter but rather forces one (as described above)
 
 
 # FastAsyncWorldEdit
