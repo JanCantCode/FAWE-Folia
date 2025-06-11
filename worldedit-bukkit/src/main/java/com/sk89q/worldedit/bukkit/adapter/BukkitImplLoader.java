@@ -61,6 +61,8 @@ public class BukkitImplLoader {
                     + "** and block property-related functions.\n"
                     + "**********************************************\n";
     //FAWE end
+    private static final String NO_ADAPTER =
+            "The Embedded folia-compliant adapter for 1.21.4 was not found. this probably means you broke something!";
 
     /**
      * Create a new instance.
@@ -74,7 +76,6 @@ public class BukkitImplLoader {
      * {@code -Dworldedit.bukkit.adapter}.
      */
     private void addDefaults() {
-        System.setProperty("worldedit.bukkit.adapter", "com.sk89q.worldedit.bukkit.adapter.impl.fawe.v1_21_4.PaperweightFaweAdapter");
         String className = System.getProperty("worldedit.bukkit.adapter");
         if (className != null) {
             customCandidate = className;
@@ -170,44 +171,11 @@ public class BukkitImplLoader {
         System.out.println("loading adapter because ? ");
         // FAWE - do not initialize classes on lookup
         final ClassLoader classLoader = this.getClass().getClassLoader();
+        try {
+            Class<?> adapterClass = Class.forName("com.sk89q.worldedit.bukkit.adapter.impl.fawe.v1_21_4.PaperweightFaweAdapter");
+            return (BukkitImplAdapter) adapterClass.newInstance();
+        } catch (Exception ignored) {}
 
-        for (String className : adapterCandidates) {
-
-            if (className.equals("com.sk89q.worldedit.bukkit.adapter.impl.fawe.v1_21_4.PaperweightFaweAdapter")) {
-                try {
-                    Class<?> cls = Class.forName(className);
-                    if (cls.isSynthetic()) {
-                        continue;
-                    }
-                    if (BukkitImplAdapter.class.isAssignableFrom(cls)) {
-                        System.out.println("successfully loaded " + className + " as adapter!");
-                        BukkitImplAdapter<?> adapter = (BukkitImplAdapter<?>) cls.newInstance();
-                        System.out.println("successfully casted " + adapter.getClass());
-                        return (BukkitImplAdapter) cls.newInstance();
-                    } else {
-
-                    }
-                } catch (ClassNotFoundException e) {
-                    LOGGER.warn("Failed to load the Bukkit adapter class '" + className
-                            + "' that is not supposed to be missing", e);
-                } catch (IllegalAccessException e) {
-                    LOGGER.warn("Failed to load the Bukkit adapter class '" + className
-                            + "' that is not supposed to be raising this error", e);
-                } catch (Throwable e) {
-                    System.out.println("another error during casting this class:  " + className);
-                    e.printStackTrace();
-                    if (className.equals(customCandidate)) {
-                        LOGGER.warn("Failed to load the Bukkit adapter class '" + className + "'", e);
-                    }
-                }
-            }
-
-        }
-
-        throw new AdapterLoadException(LOAD_ERROR_MESSAGE);
-    }
-
-    private void attemptClassTestLoading() {
-
+        throw new AdapterLoadException(NO_ADAPTER);
     }
 }
