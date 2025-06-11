@@ -236,15 +236,6 @@ public class WorldEditPlugin extends JavaPlugin {
      */
     @Override
     public void onEnable() {
-       try {
-           System.out.println("trying to instantiate itemstack class!");
-           Class<?> clazz = Class.forName("org.bukkit.craftbukkit.inventory.CraftItemStack");
-           System.out.println("itemstack: " + clazz.getName());
-           System.out.println("itemstack: " + clazz.getPackage().getName());
-       } catch (Exception e) {
-           System.out.println("failed loading itemstack class");
-           e.printStackTrace();
-       }
         // Catch bad things being done by naughty plugins that include
         // WorldEdit's classes
         ClassSourceValidator verifier = new ClassSourceValidator(this);

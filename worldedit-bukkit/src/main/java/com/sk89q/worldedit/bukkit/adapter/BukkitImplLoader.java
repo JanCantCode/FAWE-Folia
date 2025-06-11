@@ -168,7 +168,6 @@ public class BukkitImplLoader {
      * @throws AdapterLoadException thrown if no adapter could be found
      */
     public BukkitImplAdapter loadAdapter() throws AdapterLoadException {
-        System.out.println("loading adapter because ? ");
         // FAWE - do not initialize classes on lookup
         final ClassLoader classLoader = this.getClass().getClassLoader();
         try {
